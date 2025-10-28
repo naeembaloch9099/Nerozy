@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
         const token = localStorage.getItem("token");
         if (!token) return;
         // determine base same as Api.js
-        const DEV_FALLBACK = "http://localhost:4242";
+        const DEV_FALLBACK = "https://nerozyserver-production.up.railway.app";
         const BASE =
           typeof import.meta !== "undefined" &&
           import.meta.env &&

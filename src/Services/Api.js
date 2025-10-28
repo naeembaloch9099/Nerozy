@@ -1,9 +1,9 @@
 // API wrapper - forwards calls to the backend API endpoints.
 // Keeps the same exported function names so existing UI code keeps working.
 
-// In development, point to the backend running on localhost:4242 by default.
+// Backend deployed on Railway - change to http://localhost:4242 for local development
 // In production the frontend and backend may be served from the same origin, so use a relative path.
-const DEV_FALLBACK = "http://localhost:4242";
+const DEV_FALLBACK = "https://nerozyserver-production.up.railway.app";
 const BASE =
   typeof import.meta !== "undefined" &&
   import.meta.env &&

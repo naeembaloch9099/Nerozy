@@ -341,7 +341,7 @@ export default function Checkout() {
     }
 
     // Get API base same as Api.js
-    const DEV_FALLBACK = "http://localhost:4242";
+    const DEV_FALLBACK = "https://nerozyserver-production.up.railway.app";
     const BASE = import.meta.env?.VITE_API_BASE || DEV_FALLBACK;
 
     try {

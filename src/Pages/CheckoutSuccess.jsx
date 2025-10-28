@@ -110,7 +110,8 @@ export default function CheckoutSuccess() {
 
           // Try to get session details for display
           try {
-            const DEV_FALLBACK = "http://localhost:4242";
+            const DEV_FALLBACK =
+              "https://nerozyserver-production.up.railway.app";
             const BASE = import.meta.env?.VITE_API_BASE || DEV_FALLBACK;
             const res = await fetch(
               `${BASE}/api/payments/session/${sessionId}`
@@ -135,7 +136,8 @@ export default function CheckoutSuccess() {
           // Poll the server for the persisted order created by the Stripe webhook.
           (async function pollForOrder() {
             try {
-              const DEV_FALLBACK = "http://localhost:4242";
+              const DEV_FALLBACK =
+                "https://nerozyserver-production.up.railway.app";
               const BASE = import.meta.env?.VITE_API_BASE || DEV_FALLBACK;
               const maxAttempts = 3; // Reduced to 3 attempts (~3 seconds) since webhook likely not configured
               let attempts = 0;
@@ -191,7 +193,8 @@ export default function CheckoutSuccess() {
 
               // FALLBACK: Create order manually using Stripe session data if webhook didn't work
               try {
-                const DEV_FALLBACK = "http://localhost:4242";
+                const DEV_FALLBACK =
+                  "https://nerozyserver-production.up.railway.app";
                 const BASE = import.meta.env?.VITE_API_BASE || DEV_FALLBACK;
 
                 // First, get the Stripe session details

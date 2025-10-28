@@ -37,7 +37,7 @@ export default function ResetPassword() {
 
     setIsResetting(true);
     try {
-      const DEV_FALLBACK = "http://localhost:4242";
+      const DEV_FALLBACK = "https://nerozyserver-production.up.railway.app";
       const BASE =
         typeof import.meta !== "undefined" &&
         import.meta.env &&
