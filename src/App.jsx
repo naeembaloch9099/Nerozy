@@ -6,6 +6,7 @@ import Cart from "./Pages/Cart";
 import ProductDetail from "./Pages/ProductDetails";
 import Login from "./Pages/Login";
 import Signup from "./Pages/Signup";
+import ResetPassword from "./Pages/ResetPassword";
 import AdminDashboard from "./Admin/Admindashboard";
 import AdminProducts from "./Admin/AdminProduct";
 import AdminSidebar from "./Admin/AdminSidebar";
@@ -92,6 +93,7 @@ function AppContent() {
               <Route path="/home" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />

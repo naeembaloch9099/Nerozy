@@ -63,6 +63,11 @@ const InputGroup = styled.div`
     color: #fff;
     backdrop-filter: blur(5px);
     transition: 0.3s;
+    box-sizing: border-box;
+
+    &.with-icon {
+      padding-right: 45px;
+    }
   }
 
   label {
@@ -88,6 +93,24 @@ const InputGroup = styled.div`
     font-size: 0.8rem;
     margin-top: 2px;
     display: block;
+  }
+
+  button.eye-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #fff;
+    padding: 0 8px;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 0.7;
+    }
   }
 `;
 
@@ -123,6 +146,8 @@ export default function Signup() {
   const [errors, setErrors] = useState({});
   const [showOtp, setShowOtp] = useState(false);
   const [otp, setOtp] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { login } = useAuth();
   const nav = useNavigate();
@@ -211,23 +236,41 @@ export default function Signup() {
 
             <InputGroup>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder=" "
+                className="with-icon"
               />
               <label>Password</label>
+              <button
+                type="button"
+                className="eye-icon"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "👁️" : "👁️‍🗨️"}
+              </button>
               {errors.password && <span>{errors.password}</span>}
             </InputGroup>
 
             <InputGroup>
               <input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 placeholder=" "
+                className="with-icon"
               />
               <label>Confirm Password</label>
+              <button
+                type="button"
+                className="eye-icon"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                title={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+              </button>
               {errors.confirm && <span>{errors.confirm}</span>}
             </InputGroup>
 

@@ -8,6 +8,10 @@ import Logo from "../Assets/logo.png";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
   const { login } = useAuth();
   const nav = useNavigate();
 
@@ -98,6 +102,54 @@ export default function Login() {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+
+    if (!resetEmail) {
+      error("Please enter your email address");
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const DEV_FALLBACK = "http://localhost:4242";
+      const BASE =
+        typeof import.meta !== "undefined" &&
+        import.meta.env &&
+        import.meta.env.MODE === "development"
+          ? import.meta.env.VITE_API_BASE || DEV_FALLBACK
+          : "";
+
+      const res = await fetch(`${BASE}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        if (data.devResetToken) {
+          success(
+            `Reset link sent! Dev Code: ${data.devResetToken} | Link: ${data.devResetUrl}`
+          );
+        } else {
+          success(
+            "Password reset link sent to your email! Check your inbox and click the link."
+          );
+        }
+        setShowForgotPassword(false);
+        setResetEmail("");
+      } else {
+        error(data.error || "Failed to send reset link");
+      }
+    } catch {
+      error("Failed to send reset link. Please try again.");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <div
       style={{
@@ -163,23 +215,58 @@ export default function Login() {
           />
 
           <label style={{ fontWeight: 500, color: "#555" }}>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "12px 14px",
-              marginBottom: 24,
-              borderRadius: 10,
-              border: "1px solid #ddd",
-              outline: "none",
-              fontSize: "1rem",
-              transition: "all 0.3s",
-            }}
-          />
+          <div style={{ position: "relative", marginBottom: 12 }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              style={{
+                display: "block",
+                width: "100%",
+                padding: "12px 45px 12px 14px",
+                borderRadius: 10,
+                border: "1px solid #ddd",
+                outline: "none",
+                fontSize: "1rem",
+                transition: "all 0.3s",
+                boxSizing: "border-box",
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "absolute",
+                right: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "1.2rem",
+                color: "#666",
+                padding: "0 8px",
+              }}
+              title={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? "👁️" : "👁️‍🗨️"}
+            </button>
+          </div>
+
+          <div style={{ textAlign: "right", marginBottom: 20 }}>
+            <span
+              style={{
+                color: "#667eea",
+                fontSize: "0.85rem",
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+              onClick={() => setShowForgotPassword(true)}
+            >
+              Forgot Password?
+            </span>
+          </div>
 
           <button
             type="submit"
@@ -215,6 +302,104 @@ export default function Login() {
           </span>
         </p>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+          onClick={() => setShowForgotPassword(false)}
+        >
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 20,
+              padding: "2rem",
+              maxWidth: 400,
+              width: "90%",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ margin: 0, marginBottom: 10, color: "#333" }}>
+              Reset Password
+            </h2>
+            <p style={{ color: "#666", fontSize: "0.9rem", marginBottom: 20 }}>
+              Enter your email address and we'll send you a 6-digit reset code.
+            </p>
+
+            <form onSubmit={handleForgotPassword}>
+              <label style={{ fontWeight: 500, color: "#555" }}>Email</label>
+              <input
+                type="email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                style={{
+                  display: "block",
+                  width: "100%",
+                  padding: "12px 14px",
+                  marginBottom: 20,
+                  borderRadius: 10,
+                  border: "1px solid #ddd",
+                  outline: "none",
+                  fontSize: "1rem",
+                }}
+              />
+
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(false)}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: "#e5e7eb",
+                    color: "#333",
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    border: "none",
+                    borderRadius: 12,
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isResetting}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: isResetting
+                      ? "#ccc"
+                      : "linear-gradient(90deg, #667eea 0%, #764ba2 100%)",
+                    color: "#fff",
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    border: "none",
+                    borderRadius: 12,
+                    cursor: isResetting ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {isResetting ? "Sending..." : "Send Reset Link"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Responsive media queries */}
       <style>
