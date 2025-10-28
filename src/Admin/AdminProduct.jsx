@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styled, { keyframes } from "styled-components";
 import ProductCard from "../Components/ProductCard";
+import StockBadge from "../Components/StockBadge";
 import {
   getAllProducts,
   createProduct,
@@ -481,7 +482,17 @@ export default function AdminProducts() {
                   </div>
 
                   <div style={{ flex: 1 }}>
-                    <h4 style={{ margin: 0 }}>{p.name}</h4>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      <h4 style={{ margin: 0 }}>{p.name}</h4>
+                      <StockBadge stock={p.qty || 0} showCount={false} />
+                    </div>
                     <div style={{ color: "#556", marginTop: 6 }}>
                       {p.description}
                     </div>
@@ -494,8 +505,22 @@ export default function AdminProducts() {
                         flexWrap: "wrap",
                       }}
                     >
-                      <div>Price: PKR {p.price}</div>
-                      <div>Qty: {p.qty || 0}</div>
+                      <div style={{ fontWeight: 600 }}>
+                        Price: PKR {p.price}
+                      </div>
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          color:
+                            p.qty === 0
+                              ? "#ff6b6b"
+                              : p.qty <= 5
+                              ? "#ffb703"
+                              : "#51cf66",
+                        }}
+                      >
+                        Stock: {p.qty || 0}
+                      </div>
                       <div>Cat: {p.category || "-"}</div>
                       <div>
                         Sizes:{" "}

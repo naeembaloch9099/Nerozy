@@ -350,6 +350,8 @@ export default function Checkout() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: cart.map((item) => ({
+            product: item.id || null, // Include product ID
+            id: item.id || null, // Fallback
             name: item.name,
             price: item.price,
             quantity: item.quantity,

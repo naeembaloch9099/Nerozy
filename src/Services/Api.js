@@ -267,3 +267,19 @@ export async function updateOrderStatus(id, status) {
     createdAt: o.createdAt || o.createdAt,
   };
 }
+
+export async function getAnalytics(period = "30days") {
+  try {
+    const res = await fetch(
+      `${BASE}/api/orders/analytics/stats?period=${period}`,
+      {
+        headers: { ...authHeaders() },
+      }
+    );
+    const data = await handleRes(res);
+    return data || null;
+  } catch (err) {
+    console.error("getAnalytics failed", err);
+    return null;
+  }
+}

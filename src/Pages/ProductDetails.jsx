@@ -3,7 +3,8 @@ import { useParams } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import { getProductById } from "../Services/Api";
 import { useCart } from "../Context/Cart";
-import { success } from "../Utils/notify";
+import { success, error as errorNotify } from "../Utils/notify";
+import StockBadge from "../Components/StockBadge";
 
 const fadeIn = keyframes`
   from {
@@ -274,10 +275,33 @@ const AddToCartButton = styled.button`
   font-size: 18px;
   font-weight: 700;
   color: white;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: ${(props) =>
+    props.disabled
+      ? "linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)"
+      : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"};
   border: none;
   border-radius: 14px;
-  cursor: pointer;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  transition: all 0.3s ease;
+  box-shadow: ${(props) =>
+    props.disabled
+      ? "0 4px 12px rgba(0, 0, 0, 0.1)"
+      : "0 8px 20px rgba(102, 126, 234, 0.4)"};
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: ${(props) => (props.disabled ? 0.6 : 1)};
+
+  &:hover {
+    background: ${(props) =>
+      props.disabled
+        ? "linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%)"
+        : "linear-gradient(135deg, #764ba2 0%, #667eea 100%)"};
+    transform: ${(props) => (props.disabled ? "none" : "translateY(-2px)")};
+    box-shadow: ${(props) =>
+      props.disabled
+        ? "0 4px 12px rgba(0, 0, 0, 0.1)"
+        : "0 12px 28px rgba(102, 126, 234, 0.5)"};
+  }
   transition: all 0.3s ease;
   box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
   text-transform: uppercase;
@@ -364,6 +388,20 @@ export default function ProductDetail() {
   }
 
   function handleAdd() {
+    const stock = product.qty || 0;
+
+    // Check if product is in stock
+    if (stock === 0) {
+      errorNotify("❌ This product is out of stock!");
+      return;
+    }
+
+    // Check if quantity exceeds available stock
+    if (qty > stock) {
+      errorNotify(`❌ Only ${stock} items available in stock!`);
+      return;
+    }
+
     addToCart({
       id: product.id,
       name: product.name,
@@ -387,6 +425,16 @@ export default function ProductDetail() {
           {/* Image Section */}
           <ImageSection>
             <Badge>✨ Premium Quality</Badge>
+            <div
+              style={{
+                position: "absolute",
+                top: "20px",
+                right: "20px",
+                zIndex: 10,
+              }}
+            >
+              <StockBadge stock={product.qty || 0} showCount={true} />
+            </div>
             <MainImage
               src={product.images[0] || "/images/shoe1.jpg"}
               alt={product.name}
@@ -454,22 +502,37 @@ export default function ProductDetail() {
             <OptionGroup>
               <OptionLabel>Quantity</OptionLabel>
               <QuantityControl>
-                <QuantityButton onClick={decrementQty} disabled={qty <= 1}>
+                <QuantityButton
+                  onClick={decrementQty}
+                  disabled={qty <= 1 || product.qty === 0}
+                >
                   −
                 </QuantityButton>
                 <QuantityDisplay>{qty}</QuantityDisplay>
                 <QuantityButton
                   onClick={incrementQty}
-                  disabled={qty >= (product.qty || 99)}
+                  disabled={qty >= (product.qty || 0) || product.qty === 0}
                 >
                   +
                 </QuantityButton>
               </QuantityControl>
+              {product.qty > 0 && product.qty <= 10 && (
+                <div
+                  style={{
+                    fontSize: "14px",
+                    color: "#ff6b6b",
+                    marginTop: "8px",
+                    fontWeight: 600,
+                  }}
+                >
+                  ⚠️ Hurry! Only {product.qty} left in stock
+                </div>
+              )}
             </OptionGroup>
 
             {/* Add to Cart Button */}
-            <AddToCartButton onClick={handleAdd}>
-              🛒 Add to Cart
+            <AddToCartButton onClick={handleAdd} disabled={product.qty === 0}>
+              {product.qty === 0 ? "❌ Out of Stock" : "🛒 Add to Cart"}
             </AddToCartButton>
 
             {/* Product Info */}
