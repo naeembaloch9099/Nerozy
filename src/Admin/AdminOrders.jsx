@@ -10,6 +10,9 @@ import {
   FiXCircle,
   FiEye,
   FiChevronDown,
+  FiSearch,
+  FiFilter,
+  FiX,
 } from "react-icons/fi";
 
 /* ---------------- Styled Components ---------------- */
@@ -307,6 +310,178 @@ const OrdersBadge = styled.div`
   }
 `;
 
+const FiltersSection = styled.div`
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+
+  @media (max-width: 639px) {
+    padding: 16px;
+    border-radius: 10px;
+  }
+`;
+
+const FiltersGrid = styled.div`
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 16px;
+  align-items: end;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 639px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+`;
+
+const FilterGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const FilterLabel = styled.label`
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4a5568;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+const SearchInputWrapper = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  svg {
+    position: absolute;
+    left: 12px;
+    color: #a0aec0;
+    font-size: 18px;
+  }
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  padding: 12px 12px 12px 42px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+  background: #f7fafc;
+
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  &::placeholder {
+    color: #a0aec0;
+  }
+
+  @media (max-width: 639px) {
+    padding: 10px 10px 10px 38px;
+    font-size: 0.9rem;
+  }
+`;
+
+const SelectInput = styled.select`
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background: #f7fafc;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  @media (max-width: 639px) {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+`;
+
+const ClearFiltersBtn = styled.button`
+  padding: 12px 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  color: #4a5568;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+
+  &:hover {
+    border-color: #fc8181;
+    background: #fff5f5;
+    color: #e53e3e;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 639px) {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+`;
+
+const FilterStats = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+
+  @media (max-width: 639px) {
+    gap: 8px;
+    margin-top: 12px;
+  }
+`;
+
+const StatChip = styled.div`
+  background: ${(props) => props.bg || "#f7fafc"};
+  color: ${(props) => props.color || "#4a5568"};
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 2px solid ${(props) => props.borderColor || "#e2e8f0"};
+
+  @media (max-width: 639px) {
+    padding: 5px 12px;
+    font-size: 0.8rem;
+  }
+`;
+
 const ViewBtn = styled.button`
   display: inline-flex;
   align-items: center;
@@ -453,6 +628,12 @@ export default function AdminOrders() {
   const [selected, setSelected] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
 
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+  const [dateFilter, setDateFilter] = useState("all");
+
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -545,6 +726,140 @@ export default function AdminOrders() {
     }
   };
 
+  // Filter and sort logic
+  const filteredOrders = React.useMemo(() => {
+    let result = [...orders];
+
+    // Search filter (order number, customer name, email, phone)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((order) => {
+        const orderNum = order.orderNumber?.toLowerCase() || "";
+        const customerName =
+          order.shippingAddress?.fullName?.toLowerCase() ||
+          order.shippingAddress?.recipient?.toLowerCase() ||
+          "";
+        const email = order.shippingAddress?.email?.toLowerCase() || "";
+        const phone = order.shippingAddress?.phone?.toLowerCase() || "";
+
+        return (
+          orderNum.includes(query) ||
+          customerName.includes(query) ||
+          email.includes(query) ||
+          phone.includes(query)
+        );
+      });
+    }
+
+    // Status filter
+    if (statusFilter !== "all") {
+      result = result.filter(
+        (order) => order.status?.toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
+
+    // Date filter
+    if (dateFilter !== "all") {
+      const now = new Date();
+      const filterDate = new Date();
+
+      switch (dateFilter) {
+        case "today":
+          filterDate.setHours(0, 0, 0, 0);
+          break;
+        case "week":
+          filterDate.setDate(now.getDate() - 7);
+          break;
+        case "month":
+          filterDate.setMonth(now.getMonth() - 1);
+          break;
+        case "3months":
+          filterDate.setMonth(now.getMonth() - 3);
+          break;
+        default:
+          break;
+      }
+
+      if (dateFilter !== "all") {
+        result = result.filter((order) => {
+          const orderDate = new Date(order.createdAt || order.date);
+          return orderDate >= filterDate;
+        });
+      }
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.date);
+      const dateB = new Date(b.createdAt || b.date);
+
+      switch (sortBy) {
+        case "newest":
+          return dateB - dateA;
+        case "oldest":
+          return dateA - dateB;
+        case "price-high":
+          return (b.total || 0) - (a.total || 0);
+        case "price-low":
+          return (a.total || 0) - (b.total || 0);
+        case "status": {
+          const statusOrder = {
+            pending: 1,
+            confirmed: 2,
+            shipped: 3,
+            delivered: 4,
+            canceled: 5,
+          };
+          return (
+            (statusOrder[a.status?.toLowerCase()] || 99) -
+            (statusOrder[b.status?.toLowerCase()] || 99)
+          );
+        }
+        default:
+          return dateB - dateA;
+      }
+    });
+
+    return result;
+  }, [orders, searchQuery, statusFilter, sortBy, dateFilter]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setSortBy("newest");
+    setDateFilter("all");
+  };
+
+  const hasActiveFilters =
+    searchQuery.trim() ||
+    statusFilter !== "all" ||
+    sortBy !== "newest" ||
+    dateFilter !== "all";
+
+  // Calculate stats
+  const stats = React.useMemo(() => {
+    const total = filteredOrders.length;
+    const totalRevenue = filteredOrders.reduce(
+      (sum, order) => sum + (order.total || 0),
+      0
+    );
+    const avgOrderValue = total > 0 ? totalRevenue / total : 0;
+
+    const statusCounts = filteredOrders.reduce((acc, order) => {
+      const status = order.status?.toLowerCase() || "unknown";
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+
+    return {
+      total,
+      totalRevenue,
+      avgOrderValue,
+      statusCounts,
+    };
+  }, [filteredOrders]);
+
   if (loading) return <div>Loading orders...</div>;
 
   return (
@@ -558,8 +873,109 @@ export default function AdminOrders() {
         <PageTitle>📦 Orders Management</PageTitle>
         <OrdersBadge>{orders.length} Total Orders</OrdersBadge>
       </HeaderSection>
-      {orders.length === 0 ? (
-        <div>No orders found</div>
+
+      {/* Filters Section */}
+      <FiltersSection>
+        <FiltersGrid>
+          <FilterGroup>
+            <FilterLabel>
+              <FiSearch /> Search Orders
+            </FilterLabel>
+            <SearchInputWrapper>
+              <FiSearch />
+              <SearchInput
+                type="text"
+                placeholder="Search by order #, name, email, phone..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </SearchInputWrapper>
+          </FilterGroup>
+
+          <FilterGroup>
+            <FilterLabel>
+              <FiFilter /> Status
+            </FilterLabel>
+            <SelectInput
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">All Status</option>
+              <option value="pending">⏳ Pending</option>
+              <option value="confirmed">✅ Confirmed</option>
+              <option value="shipped">🚚 Shipped</option>
+              <option value="delivered">📦 Delivered</option>
+              <option value="canceled">❌ Canceled</option>
+            </SelectInput>
+          </FilterGroup>
+
+          <FilterGroup>
+            <FilterLabel>📅 Date Range</FilterLabel>
+            <SelectInput
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+            >
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="week">Last 7 Days</option>
+              <option value="month">Last 30 Days</option>
+              <option value="3months">Last 3 Months</option>
+            </SelectInput>
+          </FilterGroup>
+
+          <FilterGroup>
+            <FilterLabel>🔄 Sort By</FilterLabel>
+            <SelectInput
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="status">Status</option>
+            </SelectInput>
+          </FilterGroup>
+        </FiltersGrid>
+
+        <FilterStats>
+          <StatChip bg="#f0fff4" color="#22543d" borderColor="#9ae6b4">
+            📊 Showing: {filteredOrders.length} of {orders.length}
+          </StatChip>
+          <StatChip bg="#e6fffa" color="#234e52" borderColor="#81e6d9">
+            💰 Revenue: PKR {stats.totalRevenue.toLocaleString()}
+          </StatChip>
+          <StatChip bg="#fef5e7" color="#7d6608" borderColor="#f6e05e">
+            📈 Avg: PKR {Math.round(stats.avgOrderValue).toLocaleString()}
+          </StatChip>
+          {hasActiveFilters && (
+            <ClearFiltersBtn onClick={clearFilters}>
+              <FiX /> Clear Filters
+            </ClearFiltersBtn>
+          )}
+        </FilterStats>
+      </FiltersSection>
+
+      {filteredOrders.length === 0 ? (
+        <div
+          style={{
+            background: "#fff",
+            padding: "40px",
+            borderRadius: "12px",
+            textAlign: "center",
+            boxShadow: "0 4px 16px rgba(0, 0, 0, 0.06)",
+          }}
+        >
+          <div style={{ fontSize: "3rem", marginBottom: "16px" }}>🔍</div>
+          <h3 style={{ margin: "0 0 8px 0", color: "#4a5568" }}>
+            No orders found
+          </h3>
+          <p style={{ color: "#a0aec0", margin: 0 }}>
+            {hasActiveFilters
+              ? "Try adjusting your filters"
+              : "No orders available"}
+          </p>
+        </div>
       ) : (
         <TableWrapper>
           <Table>
@@ -573,7 +989,7 @@ export default function AdminOrders() {
               </tr>
             </thead>
             <tbody>
-              {(orders || []).map((o) => (
+              {filteredOrders.map((o) => (
                 <tr key={o.id}>
                   <Td>{o.orderNumber}</Td>
                   <Td hideOnMobile>
