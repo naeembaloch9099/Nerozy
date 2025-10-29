@@ -82,24 +82,36 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
 
-  useEffect(() => {
-    async function loadProducts() {
-      setLoading(true);
-      try {
-        const featured = await getFeatured();
-        const all = await getAllProducts();
+  const loadProducts = async () => {
+    setLoading(true);
+    try {
+      const featured = await getFeatured();
+      const all = await getAllProducts();
 
-        setAllProducts(all || []);
-        setProducts(featured?.length ? featured : all || []);
-      } catch (err) {
-        console.error("Error loading products:", err);
-        notifyError("Failed to load products. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
+      setAllProducts(all || []);
+      setProducts(featured?.length ? featured : all || []);
+    } catch (err) {
+      console.error("Error loading products:", err);
+      notifyError("Failed to load products. Please try again later.");
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadProducts();
+
+    // Listen for product refresh events (triggered after order completion)
+    const handleProductRefresh = () => {
+      console.log("🔄 Refreshing products after order completion");
+      loadProducts();
+    };
+
+    window.addEventListener("refreshProducts", handleProductRefresh);
+
+    return () => {
+      window.removeEventListener("refreshProducts", handleProductRefresh);
+    };
   }, []);
 
   useEffect(() => {

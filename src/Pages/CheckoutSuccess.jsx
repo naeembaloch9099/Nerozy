@@ -88,6 +88,12 @@ export default function CheckoutSuccess() {
   const { clearCart } = useCart();
   const processedRef = useRef(false);
 
+  // Trigger product refresh on mount (inventory was updated by order)
+  useEffect(() => {
+    // Dispatch custom event to refresh product listings
+    window.dispatchEvent(new Event("refreshProducts"));
+  }, []);
+
   useEffect(() => {
     async function loadAndPersist() {
       // Prevent multiple executions
