@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { success, error } from "../Utils/notify";
-import Logo from "../Assets/logo.png";
+import Logo from "../assets/Logo.png";
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();

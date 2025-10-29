@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/Auth";
 import { fakeLogin } from "../Services/Api";
 import { success, error } from "../Utils/notify";
-import Logo from "../Assets/logo.png";
+import Logo from "../assets/Logo.png";
 
 export default function Login() {
   const [email, setEmail] = useState("");
