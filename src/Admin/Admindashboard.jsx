@@ -765,14 +765,12 @@ export default function AdminDashboard() {
             value={`PKR ${(analytics.totalRevenue || 0).toLocaleString()}`}
             icon="💰"
             color="#10b981"
-            trend={12}
           />
           <StatCard
             title="Total Orders"
             value={(analytics.totalOrders || 0).toLocaleString()}
             icon="📦"
             color="#667eea"
-            trend={8}
           />
           <StatCard
             title="Average Order Value"
@@ -781,7 +779,6 @@ export default function AdminDashboard() {
             ).toLocaleString()}`}
             icon="📈"
             color="#f59e0b"
-            trend={-3}
           />
         </div>
 
