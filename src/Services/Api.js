@@ -3,7 +3,7 @@
 
 // Backend deployed on Railway - change to http://localhost:4242 for local development
 // In production the frontend and backend may be served from the same origin, so use a relative path.
-const DEV_FALLBACK = "https://nerozyserver-production.up.railway.app";
+const DEV_FALLBACK = "https://nerozyserver-production-4128.up.railway.app";
 const BASE =
   typeof import.meta !== "undefined" &&
   import.meta.env &&
