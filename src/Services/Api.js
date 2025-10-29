@@ -2,14 +2,8 @@
 // Keeps the same exported function names so existing UI code keeps working.
 
 // Backend deployed on Railway - change to http://localhost:4242 for local development
-// In production the frontend and backend may be served from the same origin, so use a relative path.
 const DEV_FALLBACK = "https://nerozyserver-production-4128.up.railway.app";
-const BASE =
-  typeof import.meta !== "undefined" &&
-  import.meta.env &&
-  import.meta.env.MODE === "development"
-    ? import.meta.env.VITE_API_BASE || DEV_FALLBACK
-    : "";
+const BASE = import.meta.env?.VITE_API_BASE || DEV_FALLBACK;
 
 function authHeaders() {
   const token = localStorage.getItem("token");
