@@ -115,12 +115,7 @@ export default function Login() {
     try {
       const DEV_FALLBACK =
         "https://nerozyserver-production-4128.up.railway.app";
-      const BASE =
-        typeof import.meta !== "undefined" &&
-        import.meta.env &&
-        import.meta.env.MODE === "development"
-          ? import.meta.env.VITE_API_BASE || DEV_FALLBACK
-          : "";
+      const BASE = import.meta.env?.VITE_API_BASE || DEV_FALLBACK;
 
       const res = await fetch(`${BASE}/api/auth/forgot-password`, {
         method: "POST",
