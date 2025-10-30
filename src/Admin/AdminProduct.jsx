@@ -9,6 +9,7 @@ import {
   deleteProduct,
   getCategories,
   createCategory,
+  deleteCategory,
 } from "../Services/Api";
 import { success, info, error } from "../Utils/notify";
 import { FiPlus, FiSearch, FiEdit, FiTrash, FiImage } from "react-icons/fi";
@@ -278,13 +279,21 @@ export default function AdminProducts() {
       try {
         const cats = await getCategories();
         if (!mounted) return;
-        const names = (cats || []).map((c) => c.name);
+        // keep full category objects (id + name)
+        const items = (cats || []).map((c) => ({ id: c.id, name: c.name }));
         // fallback to two defaults if none found
-        if (names.length === 0) setCategories(["Peshwari Chappal", "Nerozi"]);
-        else setCategories(names);
+        if (items.length === 0)
+          setCategories([
+            { id: "peshwari", name: "Peshwari Chappal" },
+            { id: "nerozi", name: "Nerozi" },
+          ]);
+        else setCategories(items);
       } catch (err) {
         console.error("Failed to load categories", err);
-        setCategories(["Peshwari Chappal", "Nerozi"]);
+        setCategories([
+          { id: "peshwari", name: "Peshwari Chappal" },
+          { id: "nerozi", name: "Nerozi" },
+        ]);
       }
     }
     loadCats();
@@ -292,6 +301,11 @@ export default function AdminProducts() {
       mounted = false;
     };
   }, []);
+
+  // UI state for adding/removing categories without prompts
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [pendingDelete, setPendingDelete] = useState("");
 
   useEffect(() => {
     refresh();
@@ -314,7 +328,7 @@ export default function AdminProducts() {
     setSizes("");
     setColors("");
     setDesc("");
-    setCategory(categories[0] || "");
+    setCategory(categories[0]?.name || "");
     setImages([]);
     setModalOpen(true);
   }
@@ -327,7 +341,7 @@ export default function AdminProducts() {
     setSizes(p.sizes ? p.sizes.join(", ") : "");
     setColors(p.colors ? p.colors.join(", ") : "");
     setDesc(p.description || "");
-    setCategory(p.category || categories[0] || "");
+    setCategory(p.category || categories[0]?.name || "");
     setImages(p.images ? [...p.images] : []);
     setModalOpen(true);
   }
@@ -399,26 +413,47 @@ export default function AdminProducts() {
   async function addCategory(newCat) {
     const v = (newCat || "").trim();
     if (!v) return;
-    if (categories.includes(v)) return;
+    if (categories.some((c) => c.name === v)) return;
     if (categories.length >= 50) return error("Max 50 categories allowed");
     try {
       const created = await createCategory({ name: v });
       // Refresh canonical list from backend to stay in sync with other clients
       const fresh = await getCategories();
-      const names = (fresh || []).map((c) => c.name);
-      if (names.length) setCategories(names);
+      const items = (fresh || []).map((c) => ({ id: c.id, name: c.name }));
+      if (items.length) setCategories(items);
       // If backend returned created item, select it
       if (created && created.name) setCategory(created.name);
       success("Category created");
       // Notify other open clients to refresh their category lists
       try {
         window.dispatchEvent(new Event("categoriesUpdated"));
-      } catch {
-        /* ignore */
+      } catch (err) {
+        console.debug("categoriesUpdated dispatch failed", err);
       }
     } catch (err) {
       console.error("createCategory failed", err);
       error("Could not create category");
+    }
+  }
+
+  // Delete a category by name (find id then call API)
+  async function deleteCategoryByName(name) {
+    const found = categories.find((c) => c.name === name);
+    if (!found) return error("Category not found");
+    try {
+      await deleteCategory(found.id);
+      // refresh canonical list
+      const fresh = await getCategories();
+      const items = (fresh || []).map((c) => ({ id: c.id, name: c.name }));
+      setCategories(items.length ? items : []);
+      setPendingDelete("");
+      success("Category deleted");
+      try {
+        window.dispatchEvent(new Event("categoriesUpdated"));
+      } catch {}
+    } catch (err) {
+      console.error("deleteCategory failed", err);
+      error("Could not delete category");
     }
   }
 
@@ -467,20 +502,107 @@ export default function AdminProducts() {
           >
             <option value="">All categories</option>
             {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
+              <option key={c.id || c.name} value={c.name}>
+                {c.name}
               </option>
             ))}
           </Select>
-          <IconBtn
-            onClick={async () => {
-              const n = prompt("New category name");
-              if (n) await addCategory(n);
-            }}
-            title="Add category"
-          >
-            <FiPlus /> Add category
-          </IconBtn>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {addingCategory ? (
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <FormInput
+                  placeholder="New category name"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                />
+                <Btn
+                  onClick={async () => {
+                    const name = (newCategoryName || "").trim();
+                    if (!name) return error("Category name required");
+                    await addCategory(name);
+                    setNewCategoryName("");
+                    setAddingCategory(false);
+                  }}
+                >
+                  Add
+                </Btn>
+                <IconBtn
+                  onClick={() => {
+                    setAddingCategory(false);
+                    setNewCategoryName("");
+                  }}
+                  title="Cancel"
+                >
+                  Cancel
+                </IconBtn>
+              </div>
+            ) : (
+              <IconBtn
+                onClick={() => setAddingCategory(true)}
+                title="Add category"
+              >
+                <FiPlus /> Add category
+              </IconBtn>
+            )}
+
+            {/* Small category management inline list with delete controls */}
+            <div
+              style={{
+                display: "flex",
+                gap: 6,
+                alignItems: "center",
+                marginLeft: 8,
+                flexWrap: "wrap",
+              }}
+            >
+              {categories.map((c) => (
+                <div
+                  key={c.id || c.name}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "4px 8px",
+                    background: "#fff",
+                    borderRadius: 20,
+                    border: "1px solid #eef2ff",
+                  }}
+                >
+                  <div style={{ fontSize: 13 }}>{c.name}</div>
+                  {pendingDelete === c.name ? (
+                    <>
+                      <IconBtn
+                        onClick={async () => {
+                          try {
+                            await deleteCategoryByName(c.name);
+                          } catch (err) {
+                            console.error(err);
+                            error("Could not delete category");
+                          }
+                        }}
+                        title={`Confirm delete ${c.name}`}
+                      >
+                        <FiTrash />
+                      </IconBtn>
+                      <IconBtn
+                        onClick={() => setPendingDelete("")}
+                        title="Cancel"
+                      >
+                        Cancel
+                      </IconBtn>
+                    </>
+                  ) : (
+                    <IconBtn
+                      onClick={() => setPendingDelete(c.name)}
+                      title={`Delete ${c.name}`}
+                    >
+                      <FiTrash />
+                    </IconBtn>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div style={{ marginLeft: "auto" }}>
