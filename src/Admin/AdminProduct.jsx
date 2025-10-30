@@ -7,6 +7,8 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  getCategories,
+  createCategory,
 } from "../Services/Api";
 import { success, info, error } from "../Utils/notify";
 import { FiPlus, FiSearch, FiEdit, FiTrash, FiImage } from "react-icons/fi";
@@ -267,8 +269,29 @@ export default function AdminProducts() {
   // search & categories
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("");
-  // Only keep the two requested categories for admin management
-  const [categories, setCategories] = useState(["Peshwari Chappal", "Nerozi"]);
+  const [categories, setCategories] = useState([]);
+
+  // fetch categories from backend when component mounts
+  useEffect(() => {
+    let mounted = true;
+    async function loadCats() {
+      try {
+        const cats = await getCategories();
+        if (!mounted) return;
+        const names = (cats || []).map((c) => c.name);
+        // fallback to two defaults if none found
+        if (names.length === 0) setCategories(["Peshwari Chappal", "Nerozi"]);
+        else setCategories(names);
+      } catch (err) {
+        console.error("Failed to load categories", err);
+        setCategories(["Peshwari Chappal", "Nerozi"]);
+      }
+    }
+    loadCats();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     refresh();
@@ -373,13 +396,22 @@ export default function AdminProducts() {
     setImages((s) => s.filter((_, i) => i !== idx));
   }
 
-  function addCategory(newCat) {
-    const v = newCat.trim();
+  async function addCategory(newCat) {
+    const v = (newCat || "").trim();
     if (!v) return;
     if (categories.includes(v)) return;
-    if (categories.length >= 5) return error("Max 5 categories allowed");
-    setCategories((s) => [...s, v]);
-    setCategory(v);
+    if (categories.length >= 50) return error("Max 50 categories allowed");
+    try {
+      const created = await createCategory({ name: v });
+      if (created) {
+        setCategories((s) => [...s, created.name]);
+        setCategory(created.name);
+        success("Category created");
+      }
+    } catch (err) {
+      console.error("createCategory failed", err);
+      error("Could not create category");
+    }
   }
 
   const filtered = products.filter((p) => {
@@ -433,9 +465,9 @@ export default function AdminProducts() {
             ))}
           </Select>
           <IconBtn
-            onClick={() => {
-              const n = prompt("New category name (max 5)");
-              if (n) addCategory(n);
+            onClick={async () => {
+              const n = prompt("New category name");
+              if (n) await addCategory(n);
             }}
             title="Add category"
           >

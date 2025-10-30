@@ -11,18 +11,37 @@ function authHeaders() {
 }
 
 async function handleRes(res) {
+  // If response is not OK, include text body (HTML or JSON) in the error
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
+    // try parse json first
     let body = null;
     try {
       body = JSON.parse(txt || "null");
-    } catch (e) {
-      // Ignore JSON parse errors when response has no JSON body
-      console.debug("handleRes: failed to parse JSON body", e);
+    } catch {
+      // not JSON
     }
-    const err =
-      (body && body.error) || res.statusText || txt || "Request failed";
-    throw new Error(err);
+    const errMsg =
+      (body && (body.error || body.message)) ||
+      txt ||
+      res.statusText ||
+      "Request failed";
+    const e = new Error(
+      `Request to ${res.url} failed (${res.status}): ${String(errMsg).slice(
+        0,
+        200
+      )}`
+    );
+    e.status = res.status;
+    e.body = txt;
+    throw e;
+  }
+
+  // If response has non-JSON content-type, return raw text
+  const ct = res.headers.get("content-type") || "";
+  if (!/application\/json/i.test(ct)) {
+    const txt = await res.text().catch(() => null);
+    return txt;
   }
   return res.json().catch(() => null);
 }
@@ -47,6 +66,51 @@ export async function getAllProducts() {
 export async function getFeatured() {
   const prods = await getAllProducts();
   return (prods || []).slice(0, 3);
+}
+
+export async function getCategories() {
+  try {
+    const url = `${BASE}/api/categories`;
+    console.debug("getCategories ->", url);
+    const res = await fetch(url);
+    const data = await handleRes(res);
+    if (!data) return [];
+    return (Array.isArray(data) ? data : [data]).map((c) => ({
+      id: c._id || c.id,
+      name: c.name,
+      slug: c.slug,
+    }));
+  } catch (err) {
+    console.debug("getCategories failed", err);
+    return [];
+  }
+}
+
+export async function createCategory(payload) {
+  const url = `${BASE}/api/categories`;
+  console.debug(
+    "createCategory ->",
+    url,
+    payload,
+    "auth:",
+    !!localStorage.getItem("token")
+  );
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  const c = await handleRes(res);
+  if (!c) return null;
+  return { id: c._id || c.id, name: c.name, slug: c.slug };
+}
+
+export async function deleteCategory(id) {
+  const res = await fetch(`${BASE}/api/categories/${id}`, {
+    method: "DELETE",
+    headers: { ...authHeaders() },
+  });
+  return handleRes(res);
 }
 
 export async function getProductById(id) {

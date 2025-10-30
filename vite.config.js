@@ -9,7 +9,7 @@ export default defineConfig({
     open: true,
     proxy: {
       "/api": {
-        target: "http://192.168.2.118:4242",
+        target: "https://nerozyserver-production-4128.up.railway.app",
         changeOrigin: true,
         secure: false,
       },

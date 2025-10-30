@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import HeroSection from "../Components/HeroSection";
 import ProductCard from "../Components/ProductCard";
-import { getFeatured, getAllProducts } from "../Services/Api";
+import { getFeatured, getAllProducts, getCategories } from "../Services/Api";
 import { error as notifyError } from "../Utils/notify";
 import { useCart } from "../Context/Cart";
 
@@ -88,6 +88,14 @@ export default function Home() {
       const featured = await getFeatured();
       const all = await getAllProducts();
 
+      // ensure categories are fetched for category bar
+      try {
+        const cats = await getCategories();
+        setCategories((cats || []).map((c) => c.name));
+      } catch (err) {
+        console.debug("Failed to load categories", err);
+      }
+
       setAllProducts(all || []);
       setProducts(featured?.length ? featured : all || []);
     } catch (err) {
@@ -114,6 +122,9 @@ export default function Home() {
     };
   }, []);
 
+  // categories for the category bar
+  const [categories, setCategories] = useState([]);
+
   useEffect(() => {
     if (!selectedCategory) {
       setProducts(allProducts);
@@ -138,15 +149,18 @@ export default function Home() {
           </Title>
 
           <CategoryBar>
-            {["All", "Nerozi", "Peshwari Chappal"].map((cat) => (
+            <Chip
+              key="All"
+              active={selectedCategory === ""}
+              onClick={() => setSelectedCategory("")}
+            >
+              All
+            </Chip>
+            {categories.map((cat) => (
               <Chip
                 key={cat}
-                active={
-                  selectedCategory === ""
-                    ? cat === "All"
-                    : selectedCategory === cat
-                }
-                onClick={() => setSelectedCategory(cat === "All" ? "" : cat)}
+                active={selectedCategory === cat}
+                onClick={() => setSelectedCategory(cat)}
               >
                 {cat}
               </Chip>
