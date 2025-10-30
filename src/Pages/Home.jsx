@@ -80,6 +80,8 @@ export default function Home() {
   const [allProducts, setAllProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+
   const { addToCart } = useCart();
 
   const loadProducts = async () => {
@@ -106,6 +108,13 @@ export default function Home() {
     }
   };
 
+  // handler for categories updates dispatched by admin UI
+  const handleCategoriesUpdated = () => {
+    getCategories()
+      .then((cats) => setCategories((cats || []).map((c) => c.name)))
+      .catch((e) => console.debug("categoriesUpdated handler failed", e));
+  };
+
   useEffect(() => {
     loadProducts();
 
@@ -116,14 +125,15 @@ export default function Home() {
     };
 
     window.addEventListener("refreshProducts", handleProductRefresh);
+    window.addEventListener("categoriesUpdated", handleCategoriesUpdated);
 
     return () => {
       window.removeEventListener("refreshProducts", handleProductRefresh);
+      window.removeEventListener("categoriesUpdated", handleCategoriesUpdated);
     };
   }, []);
 
-  // categories for the category bar
-  const [categories, setCategories] = useState([]);
+  
 
   useEffect(() => {
     if (!selectedCategory) {

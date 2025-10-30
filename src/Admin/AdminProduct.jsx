@@ -403,10 +403,18 @@ export default function AdminProducts() {
     if (categories.length >= 50) return error("Max 50 categories allowed");
     try {
       const created = await createCategory({ name: v });
-      if (created) {
-        setCategories((s) => [...s, created.name]);
-        setCategory(created.name);
-        success("Category created");
+      // Refresh canonical list from backend to stay in sync with other clients
+      const fresh = await getCategories();
+      const names = (fresh || []).map((c) => c.name);
+      if (names.length) setCategories(names);
+      // If backend returned created item, select it
+      if (created && created.name) setCategory(created.name);
+      success("Category created");
+      // Notify other open clients to refresh their category lists
+      try {
+        window.dispatchEvent(new Event("categoriesUpdated"));
+      } catch {
+        /* ignore */
       }
     } catch (err) {
       console.error("createCategory failed", err);
