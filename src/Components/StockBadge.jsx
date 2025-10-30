@@ -1,5 +1,5 @@
 import React from "react";
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes, css } from "styled-components";
 
 const pulse = keyframes`
   0%, 100% { opacity: 1; }
@@ -18,26 +18,26 @@ const StockBadgeWrapper = styled.div`
 
   ${(props) => {
     if (props.$stock === 0) {
-      return `
+      return css`
         background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
         color: white;
         box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
       `;
     } else if (props.$stock <= 5) {
-      return `
+      return css`
         background: linear-gradient(135deg, #ffd93d, #ffb703);
         color: #333;
         box-shadow: 0 4px 12px rgba(255, 183, 3, 0.3);
         animation: ${pulse} 2s ease-in-out infinite;
       `;
     } else if (props.$stock <= 10) {
-      return `
+      return css`
         background: linear-gradient(135deg, #74c0fc, #4dabf7);
         color: white;
         box-shadow: 0 4px 12px rgba(77, 171, 247, 0.3);
       `;
     } else {
-      return `
+      return css`
         background: linear-gradient(135deg, #51cf66, #37b24d);
         color: white;
         box-shadow: 0 4px 12px rgba(55, 178, 77, 0.3);
