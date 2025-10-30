@@ -302,10 +302,10 @@ export default function AdminProducts() {
     };
   }, []);
 
-  // UI state for adding/removing categories without prompts
-  const [addingCategory, setAddingCategory] = useState(false);
+  // UI state for adding/removing categories in modal
   const [newCategoryName, setNewCategoryName] = useState("");
   const [pendingDelete, setPendingDelete] = useState("");
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   useEffect(() => {
     refresh();
@@ -510,8 +510,65 @@ export default function AdminProducts() {
             ))}
           </Select>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {addingCategory ? (
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <IconBtn
+              onClick={() => setShowCategoryModal(true)}
+              title="Manage categories"
+            >
+              <FiPlus /> Manage categories
+            </IconBtn>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                alignItems: "center",
+                marginLeft: 8,
+                flexWrap: "wrap",
+              }}
+            >
+              {categories.slice(0, 6).map((c) => (
+                <div
+                  key={c.id || c.name}
+                  style={{
+                    padding: "6px 10px",
+                    background: "#fff",
+                    borderRadius: 9999,
+                    border: "1px solid #eef2ff",
+                    fontSize: 13,
+                  }}
+                >
+                  {c.name}
+                </div>
+              ))}
+              {categories.length > 6 && (
+                <div
+                  style={{
+                    padding: "6px 10px",
+                    background: "#fff",
+                    borderRadius: 9999,
+                    border: "1px solid #eef2ff",
+                    fontSize: 13,
+                  }}
+                >
+                  +{categories.length - 6} more
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginLeft: "auto" }}>
+          <Btn onClick={openAdd}>
+            <FiPlus /> Add Product
+          </Btn>
+        </div>
+      </TopBar>
+
+      {showCategoryModal && (
+        <ModalOverlay onMouseDown={() => setShowCategoryModal(false)}>
+          <ModalCard onMouseDown={(e) => e.stopPropagation()}>
+            <ModalTitle>Manage Categories</ModalTitle>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", gap: 8 }}>
                 <FormInput
                   placeholder="New category name"
                   value={newCategoryName}
@@ -523,96 +580,58 @@ export default function AdminProducts() {
                     if (!name) return error("Category name required");
                     await addCategory(name);
                     setNewCategoryName("");
-                    setAddingCategory(false);
                   }}
                 >
                   Add
                 </Btn>
-                <IconBtn
-                  onClick={() => {
-                    setAddingCategory(false);
-                    setNewCategoryName("");
-                  }}
-                  title="Cancel"
-                >
-                  Cancel
+                <IconBtn onClick={() => setShowCategoryModal(false)}>
+                  Close
                 </IconBtn>
               </div>
-            ) : (
-              <IconBtn
-                onClick={() => setAddingCategory(true)}
-                title="Add category"
-              >
-                <FiPlus /> Add category
-              </IconBtn>
-            )}
 
-            {/* Small category management inline list with delete controls */}
-            <div
-              style={{
-                display: "flex",
-                gap: 6,
-                alignItems: "center",
-                marginLeft: 8,
-                flexWrap: "wrap",
-              }}
-            >
-              {categories.map((c) => (
-                <div
-                  key={c.id || c.name}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "4px 8px",
-                    background: "#fff",
-                    borderRadius: 20,
-                    border: "1px solid #eef2ff",
-                  }}
-                >
-                  <div style={{ fontSize: 13 }}>{c.name}</div>
-                  {pendingDelete === c.name ? (
-                    <>
-                      <IconBtn
-                        onClick={async () => {
-                          try {
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {categories.map((c) => (
+                  <div
+                    key={c.id || c.name}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: 8,
+                      borderRadius: 8,
+                      background: "#fff",
+                      border: "1px solid #f1f5f9",
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>{c.name}</div>
+                    {pendingDelete === c.name ? (
+                      <>
+                        <Danger
+                          onClick={async () => {
                             await deleteCategoryByName(c.name);
-                          } catch (err) {
-                            console.error(err);
-                            error("Could not delete category");
-                          }
-                        }}
-                        title={`Confirm delete ${c.name}`}
+                          }}
+                        >
+                          Confirm delete
+                        </Danger>
+                        <IconBtn onClick={() => setPendingDelete("")}>
+                          Cancel
+                        </IconBtn>
+                      </>
+                    ) : (
+                      <IconBtn
+                        onClick={() => setPendingDelete(c.name)}
+                        title={`Delete ${c.name}`}
                       >
                         <FiTrash />
                       </IconBtn>
-                      <IconBtn
-                        onClick={() => setPendingDelete("")}
-                        title="Cancel"
-                      >
-                        Cancel
-                      </IconBtn>
-                    </>
-                  ) : (
-                    <IconBtn
-                      onClick={() => setPendingDelete(c.name)}
-                      title={`Delete ${c.name}`}
-                    >
-                      <FiTrash />
-                    </IconBtn>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
-
-        <div style={{ marginLeft: "auto" }}>
-          <Btn onClick={openAdd}>
-            <FiPlus /> Add Product
-          </Btn>
-        </div>
-      </TopBar>
+          </ModalCard>
+        </ModalOverlay>
+      )}
 
       {loading ? (
         <p>Loading...</p>
