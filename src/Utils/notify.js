@@ -93,8 +93,13 @@ export function AsyncToastContainer() {
   }, []);
 
   if (!ToastComp) return null;
+  // Disable draggable swipe-to-dismiss handlers (they install touch listeners
+  // which on some browsers are passive and cause preventDefault warnings).
+  // Draggable behaviour is non-essential for this app and can be re-enabled
+  // later if needed.
   return React.createElement(ToastComp, {
     position: "top-right",
     pauseOnHover: true,
+    draggable: false,
   });
 }
