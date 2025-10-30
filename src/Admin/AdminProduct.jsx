@@ -360,7 +360,8 @@ export default function AdminProducts() {
         const txt = document.createElement("textarea");
         txt.innerHTML = withoutTags;
         return txt.value;
-      } catch (e) {
+      } catch (err) {
+        console.debug(err);
         return withoutTags;
       }
     }
