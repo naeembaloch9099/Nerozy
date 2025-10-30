@@ -350,12 +350,26 @@ export default function AdminProducts() {
     e.preventDefault();
     if (!name.trim()) return error("Name required");
     if (!category) return error("Select category");
+    // sanitize description: strip HTML tags and decode HTML entities
+    function stripHtml(html) {
+      if (!html) return "";
+      // remove tags
+      const withoutTags = html.replace(/<[^>]*>/g, "");
+      // decode common HTML entities using a textarea
+      try {
+        const txt = document.createElement("textarea");
+        txt.innerHTML = withoutTags;
+        return txt.value;
+      } catch (e) {
+        return withoutTags;
+      }
+    }
 
     const payload = {
       name: name.trim(),
       price: Number(price) || 0,
       qty: Number(qty) || 1,
-      description: desc,
+      description: stripHtml(desc),
       category,
       images: images || [],
       colors: (colors || "")
