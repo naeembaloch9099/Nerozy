@@ -133,8 +133,6 @@ export default function Home() {
     };
   }, []);
 
-  
-
   useEffect(() => {
     if (!selectedCategory) {
       setProducts(allProducts);
