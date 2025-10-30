@@ -450,7 +450,9 @@ export default function AdminProducts() {
       success("Category deleted");
       try {
         window.dispatchEvent(new Event("categoriesUpdated"));
-      } catch {}
+      } catch (err) {
+        console.debug("categoriesUpdated dispatch failed", err);
+      }
     } catch (err) {
       console.error("deleteCategory failed", err);
       error("Could not delete category");
