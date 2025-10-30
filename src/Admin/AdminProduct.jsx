@@ -821,11 +821,11 @@ export default function AdminProducts() {
                   style={{ flex: 1 }}
                 >
                   <option value="">Select category</option>
-                  {categories.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
+                    {categories.map((c) => (
+                      <option key={c.id || c.name} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
                 </Select>
               </FormRow>
 
