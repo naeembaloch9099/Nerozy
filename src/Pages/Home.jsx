@@ -8,8 +8,10 @@ import { useCart } from "../Context/Cart";
 
 const Container = styled.div`
   max-width: 1280px;
-  margin: 32px auto;
+  margin: 24px auto;
   padding: 0 20px;
+  font-family: "Georgia", "Times New Roman", serif;
+  color: #17202a;
 `;
 
 const Header = styled.div`
@@ -22,35 +24,36 @@ const Header = styled.div`
 `;
 
 const Title = styled.h2`
-  font-size: 1.8rem;
-  color: #0f172a;
-  font-weight: 700;
+  font-size: 1.9rem;
+  color: #2b2b25;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  font-family: "Georgia", "Times New Roman", serif;
 `;
 
 const CategoryBar = styled.div`
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  margin-left: auto;
 `;
 
 const Chip = styled.button.withConfig({
   shouldForwardProp: (prop) => prop !== "active",
 })`
-  padding: 8px 16px;
-  border-radius: 50px;
-  border: 1px solid #dbeafe;
-  background: ${(p) =>
-    p.active ? "linear-gradient(90deg,#1f6feb,#3b82f6)" : "#f8fafc"};
-  color: ${(p) => (p.active ? "#fff" : "#1e3a8a")};
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(43, 37, 28, 0.08);
+  background: ${(p) => (p.active ? "#6b4b2a" : "#fff7f0")};
+  color: ${(p) => (p.active ? "#fffdf8" : "#6b4b2a")};
   cursor: pointer;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: all 0.25s ease-in-out;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 
   &:hover {
-    background: ${(p) =>
-      p.active ? "linear-gradient(90deg,#2563eb,#1d4ed8)" : "#e0f2fe"};
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(43, 37, 28, 0.06);
   }
 `;
 
@@ -78,14 +81,42 @@ const Loading = styled.div`
   text-align: center;
   padding: 40px;
   font-size: 1.2rem;
-  color: #64748b;
+  color: #6b6b6b;
 `;
 
 const EmptyState = styled.div`
   text-align: center;
   padding: 60px;
-  color: #94a3b8;
+  color: #8b7a6b;
   font-size: 1rem;
+`;
+
+const CraftSection = styled.section`
+  background: linear-gradient(
+    180deg,
+    rgba(255, 250, 245, 0.95),
+    rgba(255, 255, 255, 0)
+  );
+  border-radius: 8px;
+  padding: 24px;
+  margin: 20px 0 8px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+`;
+
+const CraftText = styled.div`
+  flex: 1;
+`;
+
+const CraftBadge = styled.div`
+  background: #fff3e6;
+  border: 1px solid #f0d8c2;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  color: #7a4a27;
+  font-size: 0.9rem;
 `;
 
 export default function Home() {
