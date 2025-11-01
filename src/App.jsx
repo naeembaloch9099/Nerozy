@@ -2,6 +2,8 @@ import React from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AsyncToastContainer } from "./Utils/notify";
 import Home from "./Pages/Home";
+import About from "./Pages/About";
+import Contact from "./Pages/Contact";
 import Cart from "./Pages/Cart";
 import ProductDetail from "./Pages/ProductDetails";
 import Login from "./Pages/Login";
@@ -91,6 +93,8 @@ function AppContent() {
               {/* Root opens login by default */}
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/home" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/reset-password" element={<ResetPassword />} />
