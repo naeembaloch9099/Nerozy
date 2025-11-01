@@ -56,9 +56,22 @@ const Chip = styled.button.withConfig({
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  /* Desktop: 4 columns */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 20px;
   margin-top: 20px;
+
+  @media (max-width: 1023px) {
+    /* Tablet: 2 columns */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  @media (max-width: 639px) {
+    /* Mobile: single column */
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 `;
 
 const Loading = styled.div`
